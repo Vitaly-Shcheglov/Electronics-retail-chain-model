@@ -1,0 +1,90 @@
+from django.db import models
+from django.utils import timezone
+from django.core.validators import MinValueValidator
+from decimal import Decimal
+
+class Supplier(models.Model):
+    name = models.CharField(max_length=255, verbose_name="Название")
+    email = models.EmailField(blank=True, null=True, verbose_name="Email")
+    country = models.CharField(max_length=100, blank=True, null=True, verbose_name="Страна")
+    city = models.CharField(max_length=100, blank=True, null=True, verbose_name="Город")
+    street = models.CharField(max_length=255, blank=True, null=True, verbose_name="Улица")
+    house_number = models.CharField(max_length=20, blank=True, null=True, verbose_name="Номер дома")
+
+    def __str__(self):
+        return self.name
+
+
+class NetworkObject(models.Model):
+    name = models.CharField(max_length=255)
+    city = models.CharField(max_length=255, db_index=True)
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, related_name='network_objects')
+    debt = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+
+
+    def __str__(self):
+        return self.name
+
+
+class NetworkNode(models.Model):
+    LEVEL_CHOICES = (
+        (0, 'Завод'),
+        (1, 'Розничная сеть'),
+        (2, 'Индивидуальный предприниматель'),
+    )
+
+    name = models.CharField(max_length=255)
+
+    # Контакты
+    email = models.EmailField(blank=True, null=True)
+    country = models.CharField(max_length=100)
+    city = models.CharField(max_length=100)
+    street = models.CharField(max_length=200, blank=True, null=True)
+    house_number = models.CharField(max_length=20, blank=True, null=True)
+
+    # Продукты
+    product_name = models.CharField(max_length=200, blank=True, null=True)
+    product_model = models.CharField(max_length=200, blank=True, null=True)
+    product_launch_date = models.DateField(blank=True, null=True)
+
+    # Поставщик (предыдущий по иерархии)
+    supplier = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='subordinates',
+        help_text='Предыдущий по иерархии узел (поставщик).'
+    )
+
+    debt_to_supplier = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        validators=[MinValueValidator(Decimal('0.00'))]
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    level = models.PositiveSmallIntegerField(
+        choices=LEVEL_CHOICES,
+        editable=False,
+        help_text='Уровень в цепочке: 0 — завод, 1 — розничная сеть, 2 — ИП'
+    )
+
+    class Meta:
+        verbose_name = 'Сеть (узел)'
+        verbose_name_plural = 'Сеть'
+
+    def save(self, *args, **kwargs):
+        # Автоматическая установка уровня в зависимости от позиции в цепи
+        if self.supplier is None:
+            self.level = 0  # завод без поставщика — это верхний узел
+        else:
+            # уровень — на основе уровня поставщика + 1, но не выше 2
+            supplier_level = self.supplier.level if self.supplier.level is not None else 0
+            self.level = min(supplier_level + 1, 2)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.name} (уровень {self.level})'
