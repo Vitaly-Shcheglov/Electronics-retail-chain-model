@@ -10,6 +10,7 @@ class Supplier(models.Model):
     city = models.CharField(max_length=100, blank=True, null=True, verbose_name="Город")
     street = models.CharField(max_length=255, blank=True, null=True, verbose_name="Улица")
     house_number = models.CharField(max_length=20, blank=True, null=True, verbose_name="Номер дома")
+    debt = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
 
     def __str__(self):
         return self.name
@@ -27,6 +28,10 @@ class NetworkObject(models.Model):
 
 
 class NetworkNode(models.Model):
+    """
+    Модель для представления узлов сети.
+    Узел сети может быть заводом, розничной сетью или индивидуальным предпринимателем.
+    """
     LEVEL_CHOICES = (
         (0, 'Завод'),
         (1, 'Розничная сеть'),
@@ -41,6 +46,7 @@ class NetworkNode(models.Model):
     city = models.CharField(max_length=100)
     street = models.CharField(max_length=200, blank=True, null=True)
     house_number = models.CharField(max_length=20, blank=True, null=True)
+    level = models.IntegerField(choices=LEVEL_CHOICES, default=0)
 
     # Продукты
     product_name = models.CharField(max_length=200, blank=True, null=True)
@@ -77,11 +83,9 @@ class NetworkNode(models.Model):
         verbose_name_plural = 'Сеть'
 
     def save(self, *args, **kwargs):
-        # Автоматическая установка уровня в зависимости от позиции в цепи
         if self.supplier is None:
-            self.level = 0  # завод без поставщика — это верхний узел
+            self.level = 0
         else:
-            # уровень — на основе уровня поставщика + 1, но не выше 2
             supplier_level = self.supplier.level if self.supplier.level is not None else 0
             self.level = min(supplier_level + 1, 2)
         super().save(*args, **kwargs)

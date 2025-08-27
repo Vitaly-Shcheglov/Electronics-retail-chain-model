@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from rest_framework import generics
 from django_filters.rest_framework import DjangoFilterBackend, filters
 from rest_framework.filters import OrderingFilter
-from .models import NetworkNode, NetworkObject
-from .serializers import NetworkNodeSerializer, NetworkObjectSerializer
+from .models import NetworkNode, NetworkObject, Supplier
+from .serializers import NetworkNodeSerializer, NetworkObjectSerializer, SupplierSerializer
 from .filters import NetworkNodeFilter
 
 
@@ -18,6 +18,12 @@ class IsActiveUser(permissions.BasePermission):
 
 
 class NetworkNodeViewSet(viewsets.ModelViewSet):
+    """
+    Представление для управления узлами сети.
+
+    Предоставляет операции CRUD для узлов сети.
+    Доступно только аутентифицированным пользователям и активным сотрудникам.
+    """
     queryset = NetworkNode.objects.all().order_by('id')
     serializer_class = NetworkNodeSerializer
     permission_classes = [permissions.IsAuthenticated, IsActiveUser]
@@ -25,13 +31,31 @@ class NetworkNodeViewSet(viewsets.ModelViewSet):
     filterset_class = NetworkNodeFilter
 
     def perform_update(self, serializer):
-        # Запретить обновление поля debt_to_supplier через API
+        """
+        Обрабатывает обновление узла сети.
+
+        Запрещает обновление поля 'debt_to_supplier' через API.
+
+        Args:
+            serializer (Serializer): Сериализатор для валидации и сохранения данных.
+        """
         if 'debt_to_supplier' in serializer.validated_data:
             serializer.validated_data.pop('debt_to_supplier')
         serializer.save()
 
     @action(detail=False, methods=['get'], url_path='filter-by-city')
     def filter_by_city(self, request):
+        """
+        Фильтрует узлы сети по городу.
+
+        Запрашивает параметр 'city' из URL и возвращает узлы с совпадающим городом.
+
+        Args:
+            request (Request): HTTP запрос.
+
+        Returns:
+            Response: Список узлов сети, соответствующих заданному городу.
+        """
         city = request.query_params.get('city')
         if not city:
             return Response({'detail': 'city parameter is required'}, status=400)
@@ -41,6 +65,17 @@ class NetworkNodeViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='clear-debt')
     def clear_debt_bulk(self, request):
+        """
+        Очистка задолженности у нескольких узлов сети.
+
+        Запрашивает список ID узлов и устанавливает задолженность на 0.
+
+        Arg
+            request (Request): HTTP запрос, содержащий список ID узлов.
+
+        Returns:
+            Response: Количество очищенных задолженностей.
+        """
         ids = request.data.get('ids', [])
         if not isinstance(ids, list) or not ids:
             return Response({'detail': 'ids must be a list of IDs'}, status=400)
@@ -49,19 +84,48 @@ class NetworkNodeViewSet(viewsets.ModelViewSet):
 
 
 class NetworkObjectViewSet(viewsets.ModelViewSet):
+    """
+    Представление для управления объектами сети.
+
+    Предоставляет операции CRUD для объектов сети.
+    """
     queryset = NetworkObject.objects.all()
     serializer_class = NetworkObjectSerializer
     filter_backends = (DjangoFilterBackend, OrderingFilter)
-    filterset_fields = ['city', 'supplier']  # Укажите поля для фильтрации
-    ordering_fields = ['name', 'city']  # Укажите поля для сортировки
-    ordering = ['name']  # Укажите порядок сортировки по умолчанию
+    filterset_fields = ['city', 'supplier']
+    ordering_fields = ['name', 'city']
+    ordering = ['name']
 
 
 class NetworkObjectList(generics.ListCreateAPIView):
+    """
+    Представление для получения списка объектов сети и их создания.
+    """
     queryset = NetworkObject.objects.all()
     serializer_class = NetworkObjectSerializer
 
 
 class NetworkObjectDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Представление для получения, обновления и удаления объектов сети.
+
+    Позволяет выполнять операции CRUD для конкретного объекта сети.
+    """
     queryset = NetworkObject.objects.all()
     serializer_class = NetworkObjectSerializer
+
+
+class SupplierViewSet(viewsets.ModelViewSet):
+    """
+    Представление для управления поставщиками.
+    """
+    queryset = Supplier.objects.all()
+    serializer_class = SupplierSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['country']
+
+    def perform_update(self, serializer):
+        if 'debt' in serializer.validated_data:
+            serializer.validated_data.pop('debt')
+        serializer.save()

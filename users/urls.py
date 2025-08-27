@@ -1,30 +1,36 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import CustomTokenObtainPairView, UserDetailView, UserListCreateView
+from django.contrib.auth.views import (
+    LogoutView,
+    PasswordResetCompleteView,
+    PasswordResetConfirmView,
+    PasswordResetDoneView,
+    PasswordResetView,
+)
+from django.urls import path
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-app_name = "users"
-
-# Создаем экземпляр маршрутизатора
-router = DefaultRouter()
-router.register(r'users', UserListCreateView, basename='user')  # Регистрируем представление для пользователей
+from .views import (
+    LoginView,
+    ProfileEditView,
+    UserListView,
+    UserProfileView,
+    UserRegisterView,
+    block_user,
+    CustomTokenObtainPairView
+)
 
 urlpatterns = [
-    path('', include(router.urls)),  # Включаем все маршруты из роутера
-    path('<int:pk>/', UserDetailView.as_view(), name='user-detail'),  # Эндпоинт для получения деталей пользователя
-    path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),  # Эндпоинт для получения токена
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  # Эндпоинт для обновления токена
-]
-
-router = DefaultRouter()
-router.register(r'users', UserViewSet, basename='user')
-router.register(r'register', RegisterView, basename='register')
-
-urlpatterns = [
-    path('profile/', UserProfileView.as_view(), name='user-profile'),
-    path('', UserListView.as_view(), name='user-list'),
-    path('payments/', PaymentListView.as_view(), name='payment-list'),
-    path('payments/create/', PaymentCreateView.as_view(), name='payment-create'),
-    path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/', include(router.urls)),
+    path("api/token/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("api/register/", UserRegisterView.as_view(), name="api_register"),
+    path("api/login/", LoginView.as_view(), name="api_login"),
+    path("api/profile/edit/", ProfileEditView.as_view(), name="api_profile_edit"),
+    path("logout/", LogoutView.as_view(next_page="home"), name="logout"),
+    path("api/profile/", UserProfileView.as_view(), name="api_profile"),
+    path("users/", UserListView.as_view(), name="user_list"),
+    path("users/block/<int:user_id>/", block_user, name="block_user"),
+    path("password_reset/", PasswordResetView.as_view(), name="password_reset"),
+    path("password_reset/done/", PasswordResetDoneView.as_view(), name="password_reset_done"),
+    path("reset/<uidb64>/<token>/", PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
+    path("reset/done/", PasswordResetCompleteView.as_view(), name="password_reset_complete"),
+    path("users/<int:user_id>/", UserProfileView.as_view(), name="user_profile"),
 ]

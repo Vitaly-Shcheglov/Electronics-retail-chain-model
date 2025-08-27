@@ -1,50 +1,79 @@
-from django.contrib.auth.models import User
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+from .models import CustomUser
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserRegistrationSerializer(serializers.ModelSerializer):
     """
-    Сериализатор для модели User.
-    Позволяет преобразовывать данные пользователей в JSON-формат и обратно.
+    Сериализатор для регистрации нового пользователя.
     """
+
+    password = serializers.CharField(write_only=True)
 
     class Meta:
-        model = User
-        fields = ["id", "username", "email", "password"]
-        extra_kwargs = {"password": {"write_only": True}}
+        model = CustomUser
+        fields = ["phone_number", "password", "avatar"]
 
     def create(self, validated_data):
-        """Создает нового пользователя с зашифрованным паролем."""
-        user = User(**validated_data)
+        """
+        Создает нового пользователя на основе валидированных данных.
+        """
+        user = CustomUser(
+            phone_number=validated_data["phone_number"],
+            avatar=validated_data.get("avatar"),
+        )
         user.set_password(validated_data["password"])
         user.save()
         return user
 
-
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    """
-    Сериализатор для получения JWT токена с дополнительными полями.
-
-    Этот класс наследует от TokenObtainPairSerializer и позволяет
-    добавлять дополнительные данные в токен, такие как имя пользователя
-    и адрес электронной почты.
-    """
-
-    @classmethod
-    def get_token(cls, user):
+    def validate(self, data):
         """
-        Получает токен для указанного пользователя.
-
-        Параметры:
-            user (User): Пользователь, для которого нужно получить токен.
-
-        Возвращает:
-            Token: Токен, содержащий дополнительные данные о пользователе.
+        Проверяет валидность данных перед созданием пользователя.
         """
-        token = super().get_token(user)
+        if CustomUser.objects.filter(phone_number=data["phone_number"]).exists():
+            raise serializers.ValidationError({"phone_number": "Этот номер телефона уже зарегистрирован."})
 
-        token["username"] = user.username
-        token["email"] = user.email
+        return data
 
-        return token
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для представления и валидации данных профиля пользователя.
+    """
+
+    class Meta:
+        model = CustomUser
+        fields = ["avatar", "phone_number"]
+
+    def update(self, instance, validated_data):
+        """
+        Обновляет экземпляр пользователя с переданными данными.
+        """
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+        instance.save()
+        return instance
+
+
+class UserLoginSerializer(serializers.Serializer):
+    """
+    Сериализатор для входа пользователя.
+    """
+    phone_number = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
+
+    def validate(self, data):
+        """
+        Проверяет, что номер телефона и пароль существуют.
+        """
+        phone_number = data.get('phone_number')
+        password = data.get('password')
+
+        if not phone_number or not password:
+            raise serializers.ValidationError("Телефон и пароль обязательны.")
+
+        user = authenticate(phone_number=phone_number, password=password)
+        if user is None:
+            raise serializers.ValidationError("Неверные учетные данные.")
+
+        return data

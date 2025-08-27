@@ -5,7 +5,7 @@ from users.models import CustomUser
 
 class Command(BaseCommand):
     """
-    Класс для создания суперпользователя.
+    Команда для создания суперпользователя.
     """
 
     def handle(self, *args, **options):
@@ -13,7 +13,7 @@ class Command(BaseCommand):
         Выполняет команду для создания суперпользователя.
         """
         user = CustomUser.objects.create(
-            phone="01234567890",  # Замените на фактический phone_number зарегистрированного пользователя
+            phone_number="01234567890",  # Замените на фактический phone_number зарегистрированного пользователя
             email="test@example.com",  # Замените на фактический email зарегистрированного пользователя
         )
         user.set_password("test")
