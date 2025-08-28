@@ -1,18 +1,19 @@
-from rest_framework import viewsets, permissions
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import generics, permissions, viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework import generics
-from django_filters.rest_framework import DjangoFilterBackend, filters
 from rest_framework.filters import OrderingFilter
-from .models import NetworkNode, NetworkObject, Supplier
-from .serializers import NetworkNodeSerializer, NetworkObjectSerializer, SupplierSerializer
+from rest_framework.response import Response
+
 from .filters import NetworkNodeFilter
+from .models import NetworkNode, NetworkObject, Product, Supplier
+from .serializers import NetworkNodeSerializer, NetworkObjectSerializer, ProductSerializer, SupplierSerializer
 
 
 class IsActiveUser(permissions.BasePermission):
     """
     Разрешает доступ только активным сотрудникам (is_active = True).
     """
+
     def has_permission(self, request, view):
         return bool(request.user and request.user.is_authenticated and request.user.is_active)
 
@@ -24,7 +25,8 @@ class NetworkNodeViewSet(viewsets.ModelViewSet):
     Предоставляет операции CRUD для узлов сети.
     Доступно только аутентифицированным пользователям и активным сотрудникам.
     """
-    queryset = NetworkNode.objects.all().order_by('id')
+
+    queryset = NetworkNode.objects.all().order_by("id")
     serializer_class = NetworkNodeSerializer
     permission_classes = [permissions.IsAuthenticated, IsActiveUser]
     filter_backends = [DjangoFilterBackend]
@@ -39,11 +41,11 @@ class NetworkNodeViewSet(viewsets.ModelViewSet):
         Args:
             serializer (Serializer): Сериализатор для валидации и сохранения данных.
         """
-        if 'debt_to_supplier' in serializer.validated_data:
-            serializer.validated_data.pop('debt_to_supplier')
+        if "debt_to_supplier" in serializer.validated_data:
+            serializer.validated_data.pop("debt_to_supplier")
         serializer.save()
 
-    @action(detail=False, methods=['get'], url_path='filter-by-city')
+    @action(detail=False, methods=["get"], url_path="filter-by-city")
     def filter_by_city(self, request):
         """
         Фильтрует узлы сети по городу.
@@ -56,14 +58,14 @@ class NetworkNodeViewSet(viewsets.ModelViewSet):
         Returns:
             Response: Список узлов сети, соответствующих заданному городу.
         """
-        city = request.query_params.get('city')
+        city = request.query_params.get("city")
         if not city:
-            return Response({'detail': 'city parameter is required'}, status=400)
+            return Response({"detail": "city parameter is required"}, status=400)
         nodes = self.get_queryset().filter(city__iexact=city)
         serializer = self.get_serializer(nodes, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['post'], url_path='clear-debt')
+    @action(detail=False, methods=["post"], url_path="clear-debt")
     def clear_debt_bulk(self, request):
         """
         Очистка задолженности у нескольких узлов сети.
@@ -76,11 +78,11 @@ class NetworkNodeViewSet(viewsets.ModelViewSet):
         Returns:
             Response: Количество очищенных задолженностей.
         """
-        ids = request.data.get('ids', [])
+        ids = request.data.get("ids", [])
         if not isinstance(ids, list) or not ids:
-            return Response({'detail': 'ids must be a list of IDs'}, status=400)
+            return Response({"detail": "ids must be a list of IDs"}, status=400)
         updated = NetworkNode.objects.filter(id__in=ids).update(debt_to_supplier=0)
-        return Response({'cleared': updated})
+        return Response({"cleared": updated})
 
 
 class NetworkObjectViewSet(viewsets.ModelViewSet):
@@ -89,18 +91,20 @@ class NetworkObjectViewSet(viewsets.ModelViewSet):
 
     Предоставляет операции CRUD для объектов сети.
     """
+
     queryset = NetworkObject.objects.all()
     serializer_class = NetworkObjectSerializer
     filter_backends = (DjangoFilterBackend, OrderingFilter)
-    filterset_fields = ['city', 'supplier']
-    ordering_fields = ['name', 'city']
-    ordering = ['name']
+    filterset_fields = ["city", "supplier"]
+    ordering_fields = ["name", "city"]
+    ordering = ["name"]
 
 
 class NetworkObjectList(generics.ListCreateAPIView):
     """
     Представление для получения списка объектов сети и их создания.
     """
+
     queryset = NetworkObject.objects.all()
     serializer_class = NetworkObjectSerializer
 
@@ -111,6 +115,7 @@ class NetworkObjectDetail(generics.RetrieveUpdateDestroyAPIView):
 
     Позволяет выполнять операции CRUD для конкретного объекта сети.
     """
+
     queryset = NetworkObject.objects.all()
     serializer_class = NetworkObjectSerializer
 
@@ -119,13 +124,23 @@ class SupplierViewSet(viewsets.ModelViewSet):
     """
     Представление для управления поставщиками.
     """
+
     queryset = Supplier.objects.all()
     serializer_class = SupplierSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['country']
+    filterset_fields = ["country"]
 
     def perform_update(self, serializer):
-        if 'debt' in serializer.validated_data:
-            serializer.validated_data.pop('debt')
+        if "debt" in serializer.validated_data:
+            serializer.validated_data.pop("debt")
         serializer.save()
+
+
+class ProductViewSet(viewsets.ModelViewSet):
+    """
+    Представление для управления продуктами.
+    """
+
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer

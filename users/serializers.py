@@ -1,3 +1,4 @@
+from django.contrib.auth import authenticate
 from rest_framework import serializers
 
 from .models import CustomUser
@@ -59,6 +60,7 @@ class UserLoginSerializer(serializers.Serializer):
     """
     Сериализатор для входа пользователя.
     """
+
     phone_number = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
 
@@ -66,8 +68,8 @@ class UserLoginSerializer(serializers.Serializer):
         """
         Проверяет, что номер телефона и пароль существуют.
         """
-        phone_number = data.get('phone_number')
-        password = data.get('password')
+        phone_number = data.get("phone_number")
+        password = data.get("password")
 
         if not phone_number or not password:
             raise serializers.ValidationError("Телефон и пароль обязательны.")

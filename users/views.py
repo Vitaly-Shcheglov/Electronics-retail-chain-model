@@ -1,15 +1,13 @@
-from django.contrib.auth import authenticate, get_user_model, login
+from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
-from django.utils.translation import gettext_lazy as _
-from rest_framework import permissions, status
+from rest_framework import generics, permissions, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
-from django.shortcuts import render, redirect
 
 from .forms import UserProfileForm
 from .models import CustomUser
@@ -36,9 +34,14 @@ class UserRegisterView(APIView):
 
             refresh = RefreshToken.for_user(user)
 
-            return Response({"message": "Пользователь успешно зарегистрирован.",
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),}, status=status.HTTP_201_CREATED)
+            return Response(
+                {
+                    "message": "Пользователь успешно зарегистрирован.",
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                },
+                status=status.HTTP_201_CREATED,
+            )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -65,7 +68,7 @@ class LoginView(APIView):
                     "refresh": str(refresh),
                     "access": str(refresh.access_token),
                 },
-                status=status.HTTP_200_OK  # Убедитесь, что эта строка находится в пределах return
+                status=status.HTTP_200_OK,  # Убедитесь, что эта строка находится в пределах return
             )  # Закрывающая скобка соответствует открывающей
         return Response({"error": "Неверные учетные данные"}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -132,7 +135,7 @@ class UserListView(APIView):
 
 def is_product_manager(user):
     """
-    Проверяет, является ли пользователь менеджером продуктов.
+    Проверяет, является ли пользователь менеджером сети.
     """
     return user.groups.filter(name="Post moderator group").exists()
 
@@ -159,3 +162,20 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         Обрабатывает POST-запрос для получения токена JWT.
         """
         return super().product(request, *args, **kwargs)
+
+
+class UserDeleteView(generics.DestroyAPIView):
+    """
+    Представление для удаления пользователя.
+    """
+
+    queryset = CustomUser.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Удаляет указанный объект пользователя.
+        """
+        instance = self.get_object()
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -21,17 +21,17 @@ class UserRegistrationForm(forms.ModelForm):
     password1 = forms.CharField(
         label="Пароль",
         widget=forms.PasswordInput,
-        help_text="Введите пароль, который будет использоваться для вашей учетной записи."
+        help_text="Введите пароль, который будет использоваться для вашей учетной записи.",
     )
     password2 = forms.CharField(
         label="Подтверждение пароля",
         widget=forms.PasswordInput,
-        help_text="Введите тот же пароль еще раз для подтверждения."
+        help_text="Введите тот же пароль еще раз для подтверждения.",
     )
 
     class Meta:
         model = CustomUser
-        fields = ('phone_number', 'avatar')
+        fields = ("phone_number", "avatar")
 
     def clean_password2(self):
         """
@@ -63,7 +63,7 @@ class UserRegistrationForm(forms.ModelForm):
         Raises:
             ValidationError: Если номер телефона уже существует в базе данных.
         """
-        phone = self.cleaned_data.get('phone_number')
+        phone = self.cleaned_data.get("phone_number")
         if CustomUser.objects.filter(phone_number=phone).exists():
             raise forms.ValidationError("Пользователь с таким номером телефона уже существует.")
         return phone
@@ -81,7 +81,7 @@ class UserRegistrationForm(forms.ModelForm):
             CustomUser: Созданный объект пользователя.
         """
         user = super().save(commit=False)
-        password = self.cleaned_data.get('password1')
+        password = self.cleaned_data.get("password1")
         if password:
             user.set_password(password)
         if commit:

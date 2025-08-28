@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import NetworkNode, NetworkObject, Supplier
+
+from .models import NetworkNode, NetworkObject, Product, Supplier
 
 
 class NetworkNodeSerializer(serializers.ModelSerializer):
@@ -8,14 +9,26 @@ class NetworkNodeSerializer(serializers.ModelSerializer):
 
     Позволяет преобразовывать данные узлов сети в JSON и обратно.
     """
+
     class Meta:
         model = NetworkNode
         fields = [
-            'id', 'name', 'email', 'country', 'city', 'street', 'house_number',
-            'product_name', 'product_model', 'product_launch_date',
-            'supplier', 'debt_to_supplier', 'created_at', 'level'
+            "id",
+            "name",
+            "email",
+            "country",
+            "city",
+            "street",
+            "house_number",
+            "product_name",
+            "product_model",
+            "product_launch_date",
+            "supplier",
+            "debt_to_supplier",
+            "created_at",
+            "level",
         ]
-        read_only_fields = ('level', 'created_at')
+        read_only_fields = ("level", "created_at")
 
 
 class NetworkObjectSerializer(serializers.ModelSerializer):
@@ -23,8 +36,8 @@ class NetworkObjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = NetworkObject
-        fields = ['id', 'name', 'city', 'supplier', 'debt']
-        read_only_fields = ['debt']
+        fields = ["id", "name", "city", "supplier", "debt"]
+        read_only_fields = ["debt"]
 
 
 class SupplierSerializer(serializers.ModelSerializer):
@@ -33,7 +46,18 @@ class SupplierSerializer(serializers.ModelSerializer):
 
     Позволяет преобразовывать данные объектов сети в JSON и обратно.
     """
+
     class Meta:
         model = Supplier
-        fields = ['id', 'name', 'email', 'debt']
-        read_only_fields = ['debt']
+        fields = ["id", "name", "email", "debt"]
+        read_only_fields = ["debt"]
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для модели продукта.
+    """
+
+    class Meta:
+        model = Product
+        fields = "__all__"

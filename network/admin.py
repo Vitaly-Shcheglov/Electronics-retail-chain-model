@@ -1,8 +1,8 @@
 from django.contrib import admin
-from .models import NetworkNode, Supplier, NetworkObject
-from django.urls import reverse
+from django.urls import path, reverse
 from django.utils.html import format_html
-from django.urls import path
+
+from .models import NetworkNode, NetworkObject, Product, Supplier
 
 
 def reset_field(obj, field_name):
@@ -24,29 +24,20 @@ class SupplierAdmin(admin.ModelAdmin):
 
     Позволяет выполнять CRUD операции над объектами Supplier.
     """
-    list_display = ('name', 'email', 'country', 'city', 'street', 'house_number', 'actions_link')
-    fieldsets = (
-        (None, {
-            'fields': ('name', 'email', 'country', 'city', 'street', 'house_number')
-        }),
-    )
 
+    list_display = ("name", "email", "country", "city", "street", "house_number", "actions_link")
+    fieldsets = ((None, {"fields": ("name", "email", "country", "city", "street", "house_number")}),)
 
     def actions_link(self, obj):
         """
-        Генерация ссылки для очистки поля.
-
-        Args:
-            obj: Экземпляр поставщика.
-
-        Returns:
-            HTML-ссылка для очистки поля email.
+        Генерация ссылки для очистки поля долга.
         """
         return format_html(
-            '<a class="button" href="{}">Очистить Email</a>',
-            reverse('admin:clear_supplier_field', args=[obj.pk, 'email'])
+            '<a class="button" href="{}">Очистить долг</a>',
+            reverse("admin:clear_supplier_field", args=[obj.pk]),
         )
-    actions_link.short_description = 'Actions'
+
+    actions_link.short_description = "Actions"
 
     def get_urls(self):
         """
@@ -57,7 +48,11 @@ class SupplierAdmin(admin.ModelAdmin):
         """
         urls = super().get_urls()
         custom_urls = [
-            path('<int:supplier_id>/clear_field/<str:field_name>/', self.admin_site.admin_view(self.clear_field), name='clear_supplier_field'),
+            path(
+                "<int:supplier_id>/clear_field/<str:field_name>/",
+                self.admin_site.admin_view(self.clear_field),
+                name="clear_supplier_field",
+            ),
         ]
         return custom_urls + urls
 
@@ -78,7 +73,9 @@ class SupplierAdmin(admin.ModelAdmin):
             setattr(obj, field_name, None)
             obj.save(update_fields=[field_name])
         from django.shortcuts import redirect
-        return redirect(request.META.get('HTTP_REFERER', reverse('admin:app_supplier_change', args=[supplier_id])))
+
+        return redirect(request.META.get("HTTP_REFERER", reverse("admin:app_supplier_change", args=[supplier_id])))
+
 
 admin.site.register(Supplier, SupplierAdmin)
 
@@ -90,17 +87,32 @@ class NetworkNodeAdmin(admin.ModelAdmin):
 
     Позволяет выполнять CRUD операции над объектами NetworkNode.
     """
-    list_display = ('name', 'city', 'country', 'level', 'supplier_link', 'debt_to_supplier', 'created_at')
-    list_filter = ('city', 'country', 'level')
-    search_fields = ('name', 'city', 'country', 'street', 'product_name', 'product_model')
-    readonly_fields = ('created_at', 'level')
+
+    list_display = ("name", "city", "country", "level", "supplier_link", "debt_to_supplier", "created_at")
+    list_filter = ("city", "country", "level")
+    search_fields = ("name", "city", "country", "street", "product_name", "product_model")
+    readonly_fields = ("created_at", "level")
 
     fieldsets = (
-        (None, {
-            'fields': ('name', 'supplier', 'email', 'country', 'city', 'street', 'house_number',
-                       'product_name', 'product_model', 'product_launch_date', 'debt_to_supplier')
-        }),
-        ('Технические', {'fields': ('created_at',)}),
+        (
+            None,
+            {
+                "fields": (
+                    "name",
+                    "supplier",
+                    "email",
+                    "country",
+                    "city",
+                    "street",
+                    "house_number",
+                    "product_name",
+                    "product_model",
+                    "product_launch_date",
+                    "debt_to_supplier",
+                )
+            },
+        ),
+        ("Технические", {"fields": ("created_at",)}),
     )
 
     def supplier_link(self, obj):
@@ -114,14 +126,14 @@ class NetworkNodeAdmin(admin.ModelAdmin):
             str: HTML-ссылка на страницу изменения поставщика, если поставщик существует, иначе пустая строка.
         """
         if obj.supplier:
-            url = reverse('admin:network_networknode_change', args=[obj.supplier.pk])
+            url = reverse("admin:network_networknode_change", args=[obj.supplier.pk])
             return format_html('<a href="{}">{}</a>', url, obj.supplier.name)
-        return 'Нет поставщика'
+        return "Нет поставщика"
 
     supplier_link.allow_tags = True
-    supplier_link.short_description = 'Поставщик'
+    supplier_link.short_description = "Поставщик"
 
-    actions = ['clear_debt']
+    actions = ["clear_debt"]
 
     def clear_debt(self, request, queryset):
         """
@@ -135,9 +147,9 @@ class NetworkNodeAdmin(admin.ModelAdmin):
             None: Выводит сообщение о количестве очищенных задолженностей.
         """
         updated = queryset.update(debt_to_supplier=0)
-        self.message_user(request, f'Задолженность очищена для {updated} объектов.')
+        self.message_user(request, f"Задолженность очищена для {updated} объектов.")
 
-    clear_debt.short_description = 'Очистить задолженность выбранных объектов'
+    clear_debt.short_description = "Очистить задолженность выбранных объектов"
 
 
 @admin.register(NetworkObject)
@@ -147,7 +159,40 @@ class NetworkObjectAdmin(admin.ModelAdmin):
 
     Позволяет выполнять CRUD операции над объектами NetworkObject.
     """
-    list_display = ['id', 'name', 'city', 'supplier', 'debt']
-    list_filter = ['city', 'supplier']
-    search_fields = ['name', 'supplier__name', 'city']
-    readonly_fields = ['debt']
+
+    list_display = ["id", "name", "city", "supplier", "debt"]
+    list_filter = ["city", "supplier"]
+    search_fields = ["name", "supplier__name", "city"]
+    readonly_fields = ["debt"]
+
+
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    """
+    Административная панель для управления продуктами.
+    """
+
+    list_display = ("id", "name", "price", "supplier", "debt_to_supplier", "created_at", "display_network_objects")
+    actions = ["clear_debt_to_supplier"]
+    search_fields = (
+        "name",
+        "supplierr__name",
+    )
+    list_display_links = ["name", "supplier"]
+
+    def display_network_objects(self, obj):
+        """
+        Метод для отображения связанных сетевых объектов в административной панели.
+        """
+        return ", ".join([str(network_object) for network_object in obj.network_objects.all()])
+
+    display_network_objects.short_description = "Сетевые объекты"
+
+    def clear_debt_to_supplier(self, request, queryset):
+        """
+        Действие для обнуления задолженности перед поставщиком для выбранных продуктов.
+        """
+        updated_count = queryset.update(debt_to_supplier=0)
+        self.message_user(request, f"Задолженность перед поставщиком для {updated_count} продукта(ов) была обнулена.")
+
+        clear_debt_to_supplier.short_description = "Обнулить задолженность перед поставщиком для выбранных продуктов"

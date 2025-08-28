@@ -1,176 +1,76 @@
-import json
-
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
-from django.urls import reverse
-from rest_framework import status
-from rest_framework.test import APIClient
-
-from posts.models import Post
+from django.test import TestCase
 
 from .models import CustomUser
-from payments.models import Payment
+from .serializers import UserLoginSerializer, UserRegistrationSerializer
 
 User = get_user_model()
 
 
-class PaymentViewsTest(TestCase):
-    """
-    Тестовый класс для проверки представлений, связанных с платежами.
-    """
+class UserRegistrationSerializerTests(TestCase):
+
+    def test_create_user(self):
+        """Тестирование успешного создания пользователя."""
+        data = {"phone_number": "+12345678901", "password": "testpassword", "avatar": None}
+        serializer = UserRegistrationSerializer(data=data)
+        self.assertTrue(serializer.is_valid())
+        user = serializer.save()
+        self.assertEqual(user.phone_number, data["phone_number"])
+        self.assertTrue(user.check_password(data["password"]))
+
+
+class UserProfileSerializerTests(TestCase):
 
     def setUp(self):
-        """
-        Подготовка данных для тестов.
-        """
-        self.client = APIClient()
-        self.user = CustomUser.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            password="password123",
-            phone_number="1234567890",
-            country="Russia",
-        )
-        self.client.login(username="testuser", password="password123")
-
-        self.post = Post.objects.create(
-            title="Test Post", content="This is a test post.", is_published=True, owner=self.user
-        )
-
-        self.payment = Payment.objects.create(
-            user=self.user,
-            paid_post=self.post,
-            amount=100.00,
-            payment_method="cash",
-            is_subscription=False,
-            stripe_payment_intent_id="test_intent_id",
-        )
-
-    def test_payment_list_view(self):
-        """
-        Тест для проверки получения списка платежей.
-        """
-        response = self.client.get(reverse("payment_list"))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-
-    def test_payment_create_view(self):
-        """
-        Тест для создания нового платежа.
-        """
-        response = self.client.post(
-            reverse("payment_create"),
-            data={
-                "amount": 100.00,
-                "paid_post": self.post.id,
-                "payment_method": "cash",
-                "is_subscription": False,
-            },
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(Payment.objects.filter(user=self.user, amount=100.00).exists())
-
-    def test_stripe_webhook(self):
-        """
-        Тест для проверки обработки вебхука Stripe.
-        """
-        payload = {
-            "id": "evt_test",
-            "type": "payment_intent.succeeded",
-            "data": {
-                "object": {
-                    "id": "test_intent_id",
-                    "amount_received": 10000,
-                }
-            },
-        }
-
-        response = self.client.post(
-            reverse("stripe_webhook"), data=json.dumps(payload), content_type="application/json"
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        payment = Payment.objects.get(stripe_payment_intent_id="test_intent_id")
-        self.assertEqual(payment.status, "succeeded")
+        """Создание пользователя для тестирования."""
+        self.user = User.objects.create_user(phone_number="+12345678901", password="testpassword")
 
 
-class UserViewsTest(TestCase):
-    """
-    Тестовый класс для проверки представлений, связанных с пользователями.
-    """
+class UserLoginSerializerTests(TestCase):
 
     def setUp(self):
-        """
-        Подготовка данных для тестов.
-        """
-        self.client = Client()
-        self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            password="password123",
-            phone_number="1234567890",
-            country="Russia",
-        )
+        """Создание пользователя для тестирования входа."""
+        self.user = User.objects.create_user(phone_number="+12345678901", password="testpassword")
 
-    def test_user_registration_view(self):
-        """
-        Тест для проверки регистрации пользователя.
-        """
-        response = self.client.post(
-            reverse("register"),
-            data={
-                "username": "newuser",
-                "email": "newuser@example.com",
-                "phone_number": "0987654321",
-                "country": "USA",
-                "password": "password123",
-            },
-        )
-        self.assertEqual(response.status_code, 302)
-        self.assertTrue(User.objects.filter(username="newuser").exists())
+    def test_login_user_success(self):
+        """Тестирование успешного входа пользователя."""
+        data = {"phone_number": self.user.phone_number, "password": "testpassword"}
+        serializer = UserLoginSerializer(data=data)
+        self.assertTrue(serializer.is_valid())
 
-    def test_login_view(self):
-        """
-        Тест для проверки входа пользователя.
-        """
-        response = self.client.post(reverse("login"), data={"username": "testuser", "password": "password123"})
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.wsgi_request.user, self.user)
 
-    def test_profile_edit_view(self):
-        """
-        Тест для проверки редактирования профиля.
-        """
-        self.client.login(username="testuser", password="password123")
-        response = self.client.post(
-            reverse("profile_edit"),
-            data={
-                "phone_number": "9876543210",
-                "country": "Canada",
-                "avatar": "",
-            },
-        )
-        self.assertEqual(response.status_code, 302)
-        self.user.refresh_from_db()
-        self.assertEqual(self.user.phone_number, "9876543210")
+class CustomUserManagerTests(TestCase):
 
-    def test_user_list_view(self):
-        """
-        Тест для проверки списка пользователей.
-        """
-        response = self.client.get(reverse("user_list"))
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.user.username)
+    def setUp(self):
+        self.phone_number = "  +12345678901  "
+        self.password = "testpassword"
 
-    def test_block_user(self):
-        """
-        Тест для проверки блокировки и разблокировки пользователя.
-        """
-        self.client.login(username="testuser", password="password123")
-        user_to_block = User.objects.create_user(
-            username="blockuser", email="blockuser@example.com", password="password123"
-        )
-        response = self.client.post(reverse("block_user", kwargs={"user_id": user_to_block.id}))
-        self.assertEqual(response.status_code, 302)
-        user_to_block.refresh_from_db()
-        self.assertTrue(user_to_block.is_blocked)
+    def test_create_user(self):
+        """Тестирование создания обычного пользователя."""
+        user = CustomUser.objects.create_user(phone_number=self.phone_number, password=self.password)
+        self.assertEqual(user.phone_number, "+12345678901")
+        self.assertTrue(user.check_password(self.password))
+        self.assertFalse(user.is_staff)
+        self.assertFalse(user.is_superuser)
+
+    def test_create_superuser(self):
+        """Тестирование создания суперпользователя."""
+        superuser = CustomUser.objects.create_superuser(phone_number=self.phone_number, password=self.password)
+        self.assertEqual(superuser.phone_number, "+12345678901")
+        self.assertTrue(superuser.check_password(self.password))
+        self.assertTrue(superuser.is_staff)
+        self.assertTrue(superuser.is_superuser)
+
+    def test_normalize_phone_number(self):
+        """Тестирование нормализации номера телефона."""
+        manager = CustomUser.objects
+        normalized_phone = manager.normalize_phone_number(self.phone_number)
+        self.assertEqual(normalized_phone, "+12345678901")
+
+
+class CustomUserTests(TestCase):
+
+    def test_str_representation(self):
+        """Тестирование строкового представления пользователя."""
+        user = CustomUser(phone_number="+12345678901")
+        self.assertEqual(str(user), "+12345678901")

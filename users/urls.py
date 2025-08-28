@@ -1,21 +1,15 @@
-from django.contrib.auth.views import (
-    LogoutView,
-    PasswordResetCompleteView,
-    PasswordResetConfirmView,
-    PasswordResetDoneView,
-    PasswordResetView,
-)
 from django.urls import path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import (
+    CustomTokenObtainPairView,
     LoginView,
     ProfileEditView,
+    UserDeleteView,
     UserListView,
     UserProfileView,
     UserRegisterView,
     block_user,
-    CustomTokenObtainPairView
 )
 
 urlpatterns = [
@@ -24,13 +18,8 @@ urlpatterns = [
     path("api/register/", UserRegisterView.as_view(), name="api_register"),
     path("api/login/", LoginView.as_view(), name="api_login"),
     path("api/profile/edit/", ProfileEditView.as_view(), name="api_profile_edit"),
-    path("logout/", LogoutView.as_view(next_page="home"), name="logout"),
     path("api/profile/", UserProfileView.as_view(), name="api_profile"),
+    path("<int:pk>/delete/", UserDeleteView.as_view(), name="user-delete"),
     path("users/", UserListView.as_view(), name="user_list"),
     path("users/block/<int:user_id>/", block_user, name="block_user"),
-    path("password_reset/", PasswordResetView.as_view(), name="password_reset"),
-    path("password_reset/done/", PasswordResetDoneView.as_view(), name="password_reset_done"),
-    path("reset/<uidb64>/<token>/", PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
-    path("reset/done/", PasswordResetCompleteView.as_view(), name="password_reset_complete"),
-    path("users/<int:user_id>/", UserProfileView.as_view(), name="user_profile"),
 ]

@@ -39,22 +39,23 @@ class CustomUser(AbstractUser):
     """
     Модель пользовательской учетной записи.
     """
-    is_employee = models.BooleanField(default=False)  # Указывает, является ли пользователь сотрудником
-    is_active = models.BooleanField(default=True)  # Указывает, активен ли пользователь
+
+    is_employee = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
 
     groups = models.ManyToManyField(
-        'auth.Group',
-        related_name='custom_users',  # Уникальное имя для обратной связи с группами
+        "auth.Group",
+        related_name="custom_users",
         blank=True,
-        help_text='The groups this user belongs to.',
-        verbose_name='groups'
+        help_text="The groups this user belongs to.",
+        verbose_name="groups",
     )
     user_permissions = models.ManyToManyField(
-        'auth.Permission',
-        related_name='custom_user_permissions',  # Уникальное имя для обратной связи с разрешениями
+        "auth.Permission",
+        related_name="custom_user_permissions",
         blank=True,
-        help_text='Specific permissions for this user.',
-        verbose_name='user permissions'
+        help_text="Specific permissions for this user.",
+        verbose_name="user permissions",
     )
 
     username = None

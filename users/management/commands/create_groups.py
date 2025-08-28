@@ -15,15 +15,11 @@ class Command(BaseCommand):
         """
         Выполняет команду для создания группы и назначения разрешений.
         """
-        product_moderator_group, created = Group.objects.get_or_create(name="Product moderator group")
-        can_unpublish_permission = Permission.objects.get(codename="can_unpublish_product")
-        can_delete_permission = Permission.objects.get(codename="can_delete_product")
+        network_moderator_group, created = Group.objects.get_or_create(name="Network moderator group")
         can_view_users = Permission.objects.get(codename="can_view_users")
         can_block_user = Permission.objects.get(codename="can_block_user")
 
-        product_moderator_group.permissions.add(
-            can_unpublish_permission,
-            can_delete_permission,
+        network_moderator_group.permissions.add(
             can_view_users,
             can_block_user,
         )
@@ -32,6 +28,6 @@ class Command(BaseCommand):
             phone_number="89090249875"
         )  # Замените на фактический phone_number зарегистрированного пользователя
 
-        user.groups.add(product_moderator_group)
+        user.groups.add(network_moderator_group)
 
         self.stdout.write(self.style.SUCCESS("Successfully created groups and assigned permissions."))
