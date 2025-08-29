@@ -8,10 +8,6 @@ from .models import NetworkNode, NetworkObject, Product, Supplier
 def reset_field(obj, field_name):
     """
     Очистка конкретного поля объекта.
-
-    Args:
-        obj: Экземпляр модели, поле которого нужно очистить.
-        field_name: Имя поля, которое нужно очистить.
     """
     if hasattr(obj, field_name):
         setattr(obj, field_name, None)
@@ -42,9 +38,6 @@ class SupplierAdmin(admin.ModelAdmin):
     def get_urls(self):
         """
         Получение URL-адресов для админ-панели.
-
-        Returns:
-            Список URL-адресов, включая пользовательские.
         """
         urls = super().get_urls()
         custom_urls = [
@@ -59,14 +52,6 @@ class SupplierAdmin(admin.ModelAdmin):
     def clear_field(self, request, supplier_id, field_name):
         """
         Очистка поля поставщика по его ID.
-
-        Args:
-            request: HTTP-запрос.
-            supplier_id: ID поставщика.
-            field_name: Имя поля, которое нужно очистить.
-
-        Returns:
-            Перенаправление на страницу редактирования поставщика.
         """
         obj = self.get_object(request, supplier_id)
         if obj is not None and hasattr(obj, field_name):
@@ -118,12 +103,6 @@ class NetworkNodeAdmin(admin.ModelAdmin):
     def supplier_link(self, obj):
         """
         Генерирует HTML-ссылку на поставщика узла сети.
-
-        Args:
-            obj (NetworkNode): Экземпляр узла сети, для которого создается ссылка.
-
-        Returns:
-            str: HTML-ссылка на страницу изменения поставщика, если поставщик существует, иначе пустая строка.
         """
         if obj.supplier:
             url = reverse("admin:network_networknode_change", args=[obj.supplier.pk])
@@ -138,13 +117,6 @@ class NetworkNodeAdmin(admin.ModelAdmin):
     def clear_debt(self, request, queryset):
         """
         Очистка задолженности для выбранных узлов сети.
-
-        Args:
-            request (HttpRequest): HTTP запрос.
-            queryset (QuerySet): Выбранные узлы сети для обновления.
-
-        Returns:
-            None: Выводит сообщение о количестве очищенных задолженностей.
         """
         updated = queryset.update(debt_to_supplier=0)
         self.message_user(request, f"Задолженность очищена для {updated} объектов.")
@@ -195,4 +167,4 @@ class ProductAdmin(admin.ModelAdmin):
         updated_count = queryset.update(debt_to_supplier=0)
         self.message_user(request, f"Задолженность перед поставщиком для {updated_count} продукта(ов) была обнулена.")
 
-        clear_debt_to_supplier.short_description = "Обнулить задолженность перед поставщиком для выбранных продуктов"
+    clear_debt_to_supplier.short_description = "Обнулить задолженность перед поставщиком для выбранных продуктов"

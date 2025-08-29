@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.http import HttpResponse
 
 from .forms import UserProfileForm
 from .models import CustomUser
@@ -179,3 +180,12 @@ class UserDeleteView(generics.DestroyAPIView):
         instance = self.get_object()
         instance.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+def home(request):
+    """
+    Главная страница.
+
+    Возвращает приветственное сообщение.
+    """
+    return HttpResponse("Welcome to the Electronics retail chain model!")
