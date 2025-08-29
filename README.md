@@ -199,8 +199,8 @@ redis-server
     sudo apt install git
     git – version
     cd var/www
-    git clone git@github.com:Vitaly-Shcheglov/\Django-Habit-Tracker.git
-    cd var/www/ \Django-Habit-Tracker/
+    git clone git@github.com:Vitaly-Shcheglov/\Electronics-retail-chain-model.git
+    cd var/www/ \Electronics-retail-chain-model/
     docker compose up --build -d
 
 ### Перейдите по адресу: http://127.0.0.1:8000
