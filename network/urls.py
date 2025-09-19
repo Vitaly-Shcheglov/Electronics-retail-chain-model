@@ -8,6 +8,7 @@ from .views import (
     NetworkObjectViewSet,
     ProductViewSet,
     SupplierViewSet,
+    AddressViewSet,
 )
 
 router = DefaultRouter()
@@ -15,6 +16,7 @@ router.register(r"network-nodes", NetworkNodeViewSet)
 router.register(r"network-objects", NetworkObjectViewSet)
 router.register(r"suppliers", SupplierViewSet)
 router.register(r"products", ProductViewSet)
+router.register(r'addresses', AddressViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import NetworkNode, NetworkObject, Product, Supplier
+from .models import NetworkNode, NetworkObject, Product, Supplier, Address
 
 
 class NetworkNodeSerializer(serializers.ModelSerializer):
@@ -61,3 +61,12 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
+
+
+class AddressSerializer(serializers.ModelSerializer):
+    """
+        Сериализатор для модели Address.
+    """
+    class Meta:
+        model = Address
+        fields = '__all__'

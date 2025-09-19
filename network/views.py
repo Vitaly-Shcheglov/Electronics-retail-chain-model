@@ -5,8 +5,8 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from .filters import NetworkNodeFilter
-from .models import NetworkNode, NetworkObject, Product, Supplier
-from .serializers import NetworkNodeSerializer, NetworkObjectSerializer, ProductSerializer, SupplierSerializer
+from .models import NetworkNode, NetworkObject, Product, Supplier, Address
+from .serializers import NetworkNodeSerializer, NetworkObjectSerializer, ProductSerializer, SupplierSerializer, AddressSerializer
 
 
 class IsActiveUser(permissions.BasePermission):
@@ -144,3 +144,11 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+
+
+class AddressViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet для модели Address.
+    """
+    queryset = Address.objects.all()
+    serializer_class = AddressSerializer

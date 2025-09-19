@@ -102,3 +102,16 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Address(models.Model):
+    """
+    Модель для представления адреса.
+    """
+    country = models.CharField(max_length=100)
+    city = models.CharField(max_length=100)
+    street = models.CharField(max_length=255)
+    house_number = models.CharField(max_length=10)
+
+    def __str__(self):
+        return f"{self.country}, {self.city},{self.street} {self.house_number}"

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, reverse
 from django.utils.html import format_html
 
-from .models import NetworkNode, NetworkObject, Product, Supplier
+from .models import NetworkNode, NetworkObject, Product, Supplier, Address
 
 
 def reset_field(obj, field_name):
@@ -168,3 +168,13 @@ class ProductAdmin(admin.ModelAdmin):
         self.message_user(request, f"Задолженность перед поставщиком для {updated_count} продукта(ов) была обнулена.")
 
     clear_debt_to_supplier.short_description = "Обнулить задолженность перед поставщиком для выбранных продуктов"
+
+
+class AddressAdmin(admin.ModelAdmin):
+    """
+    Административный интерфейс для модели Address.
+    """
+    list_display = ('country', 'city', 'street', 'house_number')
+    search_fields = ('country', 'city', 'street', 'house_number')
+
+admin.site.register(Address, AddressAdmin)
