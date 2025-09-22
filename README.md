@@ -109,7 +109,7 @@ Dockerfile для Django:
 -CMD ["gunicorn", "project.wsgi:application", "--bind", "0.0.0.0:8000"]
 Миграции и статику чаще выполняют в процессе сборки/рантайма внутри контейнера.
 
-3. Обеспечение безопасности и конфигураций
+3.  Обеспечение безопасности и конфигураций
 Использовать переменные окружения для секретов и настроек.
 В продакшн включить DEBUG=False, ALLOWED_HOSTS настроить.
 Настроить CSRF, CORS по мере необходимости.
@@ -128,7 +128,7 @@ retries: 3
 Применение миграций без простоя:
 - docker-compose exec web python manage.py migrate --noinput
 Применение фиксов и миграций во время CI/CD:
-В пайплайне запускать миграции после деплоя.
+В  пайплайне запускать миграции после деплоя.
 
 6. Бэкап и восстановление БД
 Резервное копирование PostgreSQL (локально):
@@ -199,8 +199,8 @@ redis-server
     sudo apt install git
     git – version
     cd var/www
-    git clone git@github.com:Vitaly-Shcheglov/\Django-Habit-Tracker.git
-    cd var/www/ \Django-Habit-Tracker/
+    git clone git@github.com:Vitaly-Shcheglov/\Electronics-retail-chain-model.git
+    cd var/www/ \Electronics-retail-chain-model/
     docker compose up --build -d
 
 ### Перейдите по адресу: http://127.0.0.1:8000
