@@ -15,16 +15,6 @@ class CategoryAdmin(admin.ModelAdmin):
     """
     list_display = ('name',)
 
-@admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'price', 'supplier')
-    filter_horizontal = ('categories',)
-
-admin.site.register(Supplier)
-admin.site.register(NetworkObject)
-admin.site.register(NetworkNode)
-admin.site.register(Address)
-
 
 def reset_field(obj, field_name):
     """
@@ -175,6 +165,7 @@ class ProductAdmin(admin.ModelAdmin):
         "supplierr__name",
     )
     list_display_links = ["name", "supplier"]
+    filter_horizontal = ('network_objects', 'categories')
 
     def display_network_objects(self, obj):
         """
@@ -203,3 +194,6 @@ class AddressAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Address, AddressAdmin)
+admin.site.register(Supplier)
+admin.site.register(NetworkObject)
+admin.site.register(NetworkNode)
