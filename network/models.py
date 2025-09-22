@@ -4,7 +4,21 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 
+class Category(models.Model):
+    """
+    Модель категории, представляющая группу продуктов.
+    """
+
+    name = models.CharField(max_length=255, verbose_name="Название категории")
+
+    def __str__(self):
+        return self.name
+
+
 class Supplier(models.Model):
+    """
+    Модель поставщика, представляющая информацию о поставщиках товаров.
+    """
     name = models.CharField(max_length=255, verbose_name="Название")
     email = models.EmailField(blank=True, null=True, verbose_name="Email")
     country = models.CharField(max_length=100, blank=True, null=True, verbose_name="Страна")
@@ -18,6 +32,9 @@ class Supplier(models.Model):
 
 
 class NetworkObject(models.Model):
+    """
+    Модель сетевого объекта, представляющая информацию о сетевых объектах.
+    """
     name = models.CharField(max_length=255)
     city = models.CharField(max_length=255, db_index=True)
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, related_name="network_objects")
@@ -98,6 +115,7 @@ class Product(models.Model):
     debt_to_supplier = models.DecimalField(max_digits=10, decimal_places=2)
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
     network_objects = models.ManyToManyField(NetworkObject, blank=True)
+    categories = models.ManyToManyField(Category, related_name='products', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

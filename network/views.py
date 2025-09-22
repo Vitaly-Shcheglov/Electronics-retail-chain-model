@@ -6,7 +6,8 @@ from rest_framework.response import Response
 
 from .filters import NetworkNodeFilter
 from .models import NetworkNode, NetworkObject, Product, Supplier, Address
-from .serializers import NetworkNodeSerializer, NetworkObjectSerializer, ProductSerializer, SupplierSerializer, AddressSerializer
+from .serializers import (NetworkNodeSerializer, NetworkObjectSerializer, ProductSerializer, SupplierSerializer,
+                          AddressSerializer)
 
 
 class IsActiveUser(permissions.BasePermission):

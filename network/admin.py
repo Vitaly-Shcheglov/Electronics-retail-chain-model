@@ -2,12 +2,36 @@ from django.contrib import admin
 from django.urls import path, reverse
 from django.utils.html import format_html
 
-from .models import NetworkNode, NetworkObject, Product, Supplier, Address
+from .models import NetworkNode, NetworkObject, Product, Supplier, Address,  Category
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    """
+    Административный интерфейс для модели Category.
+
+    Этот класс настраивает отображение модели Category в админ-панели Django.
+    Позволяет управлять записями категорий: добавлять, редактировать и удалять их.
+    """
+    list_display = ('name',)
+
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ('name', 'price', 'supplier')
+    filter_horizontal = ('categories',)
+
+admin.site.register(Supplier)
+admin.site.register(NetworkObject)
+admin.site.register(NetworkNode)
+admin.site.register(Address)
 
 
 def reset_field(obj, field_name):
     """
     Очистка конкретного поля объекта.
+
+    Этот класс настраивает отображение модели Product в админ-панели Django.
+    Позволяет управлять записями продуктов: добавлять, редактировать и удалять их.
     """
     if hasattr(obj, field_name):
         setattr(obj, field_name, None)
@@ -176,5 +200,6 @@ class AddressAdmin(admin.ModelAdmin):
     """
     list_display = ('country', 'city', 'street', 'house_number')
     search_fields = ('country', 'city', 'street', 'house_number')
+
 
 admin.site.register(Address, AddressAdmin)
