@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, reverse
 from django.utils.html import format_html
 
-from .models import NetworkNode, NetworkObject, Product, Supplier, Address,  Category
+from .models import NetworkNode, NetworkObject, Product, Supplier, Address, Category
 
 
 @admin.register(Category)
