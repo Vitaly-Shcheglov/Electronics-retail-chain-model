@@ -194,5 +194,3 @@ class AddressAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Address, AddressAdmin)
-admin.site.register(NetworkObject)
-admin.site.register(NetworkNode)
