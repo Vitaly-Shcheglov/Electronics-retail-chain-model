@@ -140,7 +140,7 @@ docker exec -t db_pg_container pg_dump -c -U postgres yourdb > backup.sql
 - python --version
 - pip list
 Проверка миграций:
-- python manage.py showmigrations
+- python manage.py showmigrations.
 Очистка старых миграций/кешей:
 - find . -path "/migrations/.py" -name "init.py" -prune -o -print (аккуратно, избегайте удаления активных файлов)
 
